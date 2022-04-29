@@ -26,30 +26,9 @@ public static class Extensions
         var beta = CalculateAngle(a, c, b);
         var gamma = CalculateAngle(a, b, c);
         
-        
-        // var angle1 = Vector3.Angle(b1.Direction * b1.BoneTransform.up, baseDirection);
-        // b1.BoneRotation *=
-        //     Quaternion.Euler(0, 0, -angle1)
-        //     * Quaternion.Euler(0, 0,
-        //         b1.Direction == 1
-        //             ? Convert.ToSingle(gamma)
-        //             : 180 - Convert.ToSingle(gamma));
-        //
-        // b1.ShiftTo(a1);
-        //
-        // var angle2 = Vector3.Angle(c2.Direction * c2.BoneTransform.up, baseDirection);
-        //
-        // c2.BoneRotation *= 
-        //     Quaternion.Euler(0, 0, -angle2)
-        //     * Quaternion.Euler(0, 0,
-        //         c2.Direction == 1
-        //             ? 180 - Convert.ToSingle(beta)
-        //             : Convert.ToSingle(beta));
-        
         var angle1 = Vector3.SignedAngle(b1.Direction * Vector3.up, baseDirection, Vector3.forward);
         b1.BoneTransform.rotation =
             Quaternion.Euler(0, 0, angle1)
-            // * Quaternion.Euler(0, 0, (b1.Direction == 1 ? 0 : 180) + b1.Direction * Convert.ToSingle(gamma));
              * Quaternion.Euler(0, 0, b1.Direction * -Convert.ToSingle(gamma));
         
         b1.ShiftTo(a1);
@@ -58,7 +37,6 @@ public static class Extensions
         
         c2.BoneTransform.rotation = 
             Quaternion.Euler(0, 0, angle2)
-            // * Quaternion.Euler(0, 0, (c2.Direction == 1 ? 0 : 180) + c2.Direction * -Convert.ToSingle(beta));
             * Quaternion.Euler(0, 0, c2.Direction * Convert.ToSingle(beta));
                         
         c2.ShiftTo(a2);

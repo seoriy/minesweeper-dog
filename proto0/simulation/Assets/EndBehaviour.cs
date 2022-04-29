@@ -9,6 +9,13 @@ public class EndBehaviour: MonoBehaviour
         var diff = targetEnd.gameObject.transform.position - t.position;
         t.parent.position += diff;
     }
+    public void ShiftTo(Vector3 position)
+    {
+        var t = gameObject.transform;
+            
+        var diff = position - t.position;
+        t.parent.position += diff;
+    }
 
     public BoneBehaviour Bone => gameObject.GetComponentInParent<BoneBehaviour>();
 
