@@ -1,40 +1,64 @@
-using System;
-using Unity.VisualScripting;
 using UnityEngine;
 
 public class BoneBehaviour : MonoBehaviour
 {
-    private readonly float Thickness = 0.05f;
-        
+    private const float Thickness = 0.05f;
+
     public EndBehaviour endUp;
     public GameObject bone;
     public EndBehaviour endDown;
         
     public float length;
+    // private HingeJoint joint;
 
     private void Awake()
     {
+        // Debug.Log($"{name} Awake!");
         bone = Create("Bar");
         var endUpObject = Create("EndUp");
         endUp = endUpObject.AddComponent<EndBehaviour>();
-            
+        
         var endDownObject = Create("EndDown");
         endDown = endDownObject.AddComponent<EndBehaviour>();
+        
+        // JointWithOwnEnds();
+
+        // bone.GetComponent<Rigidbody>().isKinematic = true;
+        // endUp.gameObject.GetComponent<Rigidbody>().isKinematic = true;
+        // endDown.gameObject.GetComponent<Rigidbody>().isKinematic = true;
     }
 
-    GameObject Create(string tagSuffix)
+    public void MakeFixedBoneFromDownToUp() => MakeFixedBone(endDown, endUp);
+    
+    public void MakeFixedBoneFromUpToDown() => MakeFixedBone(endUp, endDown);
+
+    private void MakeFixedBone(EndBehaviour parentEnd, EndBehaviour childEnd)
     {
-        var obj = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+        bone.gameObject.FixedConnectToBody(parentEnd.gameObject);
+        childEnd.gameObject.FixedConnectToBody(bone.gameObject);
+    }
+    //
+    // public void JointWithOwnEnds()
+    // {
+    //     // Debug.Log($"{name} Connect Joints!");
+    //     var boneRigidbody = bone.GetComponent<Rigidbody>();
+    //     
+    //     endDown.ConnectJoints(boneRigidbody);
+    //     endUp.ConnectJoints(boneRigidbody);
+    // }
+
+    private GameObject Create(string tagSuffix)
+    {
         var o = gameObject;
+        
+        var obj = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
         obj.name = $"{o.name}{tagSuffix}";
         obj.transform.SetParent(o.transform);
-            
-        // bone.AddComponent<Rigidbody>();
-        // bone.GetComponent<Rigidbody>().useGravity = false;
-        // obj.AddComponent<MeshFilter>();
-        obj.AddComponent<CapsuleCollider>();
-        // obj.AddComponent<MeshRenderer>();
-            
+        
+        //obj.AddComponent<Rigidbody>();
+        // obj.GetComponent<Rigidbody>().useGravity = false;
+        // To prevent broken physics, we don't need to collide bones with joint cylinders and other bones
+        obj.GetComponent<CapsuleCollider>().enabled = false;
         return obj;
     }
 
@@ -55,5 +79,12 @@ public class BoneBehaviour : MonoBehaviour
         transform2.localPosition = Vector3.down * halfLength;
         transform2.localScale = new Vector3(Thickness, Thickness/2, Thickness);
         transform2.rotation = endRotation;
+    }
+
+    public void TurnOffKinematic()
+    {
+        // bone.GetComponent<Rigidbody>().isKinematic = false;
+        // endUp.gameObject.GetComponent<Rigidbody>().isKinematic = false;
+        // endDown.gameObject.GetComponent<Rigidbody>().isKinematic = false;
     }
 }
