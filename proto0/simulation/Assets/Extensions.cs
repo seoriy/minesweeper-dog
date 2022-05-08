@@ -1,44 +1,11 @@
 using System;
-using System.Numerics;
-using System.Runtime.CompilerServices;
-using Unity.VisualScripting;
-using UnityEditor.VersionControl;
 using UnityEngine;
 using Quaternion = UnityEngine.Quaternion;
-using Vector2 = UnityEngine.Vector2;
 using Vector3 = UnityEngine.Vector3;
 
 public static class Extensions
-{ 
-    public static ArticulationBody HingeConnectToBody(this Component child, Component parent)
-    {
-        var childBody = GetOrAddArticulationBody(child.gameObject, parent.gameObject);
-
-        childBody.jointType = ArticulationJointType.RevoluteJoint;
-        childBody.anchorRotation = Quaternion.Euler(0, 0, 90);
-        
-        return childBody;
-    }
-
-    public static ArticulationBody FixedConnectToBody(this Component child, Component parent)
-    {
-        var childBody = GetOrAddArticulationBody(child.gameObject, parent.gameObject);
-
-         childBody.jointType = ArticulationJointType.FixedJoint;
-        
-        return childBody;
-    }
-    
+{
     public static ArticulationBody FixedConnectToBody(this GameObject child, GameObject parent)
-    {
-        var childBody = GetOrAddArticulationBody(child, parent);
-
-        childBody.jointType = ArticulationJointType.FixedJoint;
-        
-        return childBody;
-    }
-
-    private static ArticulationBody GetOrAddArticulationBody(GameObject child, GameObject parent)
     {
         var parentBody = parent.GetComponent<ArticulationBody>();
         parentBody = parentBody ? parentBody : parent.AddComponent<ArticulationBody>();
@@ -47,17 +14,12 @@ public static class Extensions
 
         var childBody = child.GetComponent<ArticulationBody>();
         childBody = childBody ? childBody : child.AddComponent<ArticulationBody>();
+
+        childBody.jointType = ArticulationJointType.FixedJoint;
         
         return childBody;
     }
-
-    //
-    // public static void ShiftTo(this GameObject target, GameObject from, GameObject to)
-    // {
-    //     var diff = to.transform.position - from.transform.position;
-    //     target.transform.position += diff;
-    // }
-
+    
     public static void ComposeTriangle(
         EndBehaviour a1, EndBehaviour b1,
         EndBehaviour a2, EndBehaviour c2)
@@ -84,21 +46,6 @@ public static class Extensions
             * Quaternion.Euler(0, 0, c2.Direction * Convert.ToSingle(beta));
                         
         c2.ShiftTo(a2);
-
-        // if (a1.Bone == a2.Bone)
-        // {
-        //     Debug.Log("Compose fixed triangle");
-        //     a1.FixedJointWith(b1);
-        //     a2.FixedJointWith(c2);
-        //     b1.OppositeEnd.FixedJointWith(c2.OppositeEnd);
-        // }
-        // else
-        // {
-        //     Debug.Log("Compose hinge triangle");
-        //     a1.HingeWith(b1);
-        //     a2.HingeWith(c2);
-        //     b1.OppositeEnd.HingeWith(c2.OppositeEnd);
-        // }
     }
 
     private static double CalculateAngle(float c, float b, float a)
@@ -117,4 +64,17 @@ public static class Extensions
 
     private static void Rotate(this GameObject gameObject, double angleX, Vector3 axis = default)
         => gameObject.transform.Rotate(axis == default ? Vector3.forward : axis, Convert.ToSingle(angleX), Space.World);
+    
+    public static BoneBehaviour CreateBone(this Component parentComponent, string boneTag, float size)
+    {
+        var boneObject = new GameObject();
+        boneObject.name = boneTag;
+        boneObject.transform.SetParent(parentComponent.gameObject.transform);
+
+        var bone = boneObject.AddComponent<BoneBehaviour>();
+        bone.length = size * BoneBehaviour.BoneSizeScale;
+        bone.OnValidate();
+        
+        return bone;
+    }
 }
