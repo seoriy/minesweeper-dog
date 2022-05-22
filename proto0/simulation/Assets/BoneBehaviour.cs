@@ -28,16 +28,6 @@ public class BoneBehaviour : MonoBehaviour
         gameObject.AddComponent<ArticulationBody>();
     }
 
-    public void MakeFixedBoneFromDownToUp() => MakeFixedBone(endDown, endUp);
-    
-    public void MakeFixedBoneFromUpToDown() => MakeFixedBone(endUp, endDown);
-
-    private void MakeFixedBone(EndBehaviour parentEnd, EndBehaviour childEnd)
-    {
-        bone.gameObject.FixedConnectToBody(parentEnd.gameObject);
-        childEnd.gameObject.FixedConnectToBody(bone.gameObject);
-    }
-
     private GameObject Create(string tagSuffix)
     {
         var o = gameObject;
@@ -68,6 +58,11 @@ public class BoneBehaviour : MonoBehaviour
         transform2.localScale = new Vector3(Thickness, Thickness/2, Thickness);
         transform2.rotation = endRotation;
     }
-    
 
+    public void AddColliders()
+    {
+        endUp.gameObject.GetComponent<CapsuleCollider>().enabled = true;
+        bone.gameObject.GetComponent<CapsuleCollider>().enabled = true;
+        endDown.gameObject.GetComponent<CapsuleCollider>().enabled = true;
+    }
 }

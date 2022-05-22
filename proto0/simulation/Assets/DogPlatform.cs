@@ -1,5 +1,6 @@
 using System;
 using System.ComponentModel;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class DogPlatform : MonoBehaviour
@@ -13,13 +14,15 @@ public class DogPlatform : MonoBehaviour
     private EndBehaviour _legMountPointLeft;
     private EndBehaviour _legMountPointRight;
     private EndBehaviour _driverPoint;
-    
-    private ArticulationBody _driver;
+
+    private HingeJoint _driver;
     
     private LegBehaviour _legLeft;
     private LegBehaviour _legRight;
+
+    public float angle = 0;
     
-    public float targetVelocity;
+    public float targetVelocity = 0;
     public float velocityStep = 50;
 
     public void Awake()
@@ -56,6 +59,9 @@ public class DogPlatform : MonoBehaviour
     private void PlaceBones()
     {
         _rotationCenter.ShiftTo(gameObject.transform.position);
+        
+        _rotorBar.Rotate(angle);
+        
         _rotorBar.endDown.ShiftTo(_rotationCenter);
 
         _barLongLeft.Rotate(-90f);
@@ -67,11 +73,42 @@ public class DogPlatform : MonoBehaviour
 
     private void MakeLinkage()
     {
-        _barLongLeft.endUp.FixedConnectToBody(_barShort.endDown);
-        _barLongRight.endUp.FixedConnectToBody(_barShort.endDown);
+        GameObject o = gameObject;
+
+        if (o.GetComponent<Rigidbody>() == null)
+        {
+            o.AddComponent<Rigidbody>().isKinematic = true;
+        }
         
-        _driver = _rotorBar.endDown.HingeConnectToBody(_rotationCenter);
-        _rotationCenter.GetOrAddArticulationBody().immovable = true;
+        Extensions.SetParent(_barLongLeft, o);
+        Extensions.SetParent(_barLongRight, o);
+        Extensions.SetParent(_barShort, o);
+
+        _rotorBar.gameObject.AddComponent<Rigidbody>();
+        _rotorBar.endDown.HingeWith(_rotationCenter);
+
+        InitDriver();
+    }
+
+    private void InitDriver()
+    {
+        var obj = _rotorBar.endDown.GetObjectWithRigidBody();
+        var otherObj = _rotationCenter.GetObjectWithRigidBody();
+        
+        var joint = obj.AddComponent<HingeJoint>();
+        joint.name = "DRIVER";
+        
+        joint.axis = _rotationCenter.gameObject.transform.up;
+        
+        joint.autoConfigureConnectedAnchor = false;
+        joint.anchor = _rotorBar.endDown.AnchorPosition;
+        joint.connectedAnchor = _rotationCenter.AnchorPosition;
+        joint.connectedBody = otherObj.GetComponent<Rigidbody>();
+        
+        joint.enablePreprocessing = false;
+        joint.enableCollision = false;
+        
+        _driver = joint;
     }
 
     private void AddLegs()
@@ -87,8 +124,6 @@ public class DogPlatform : MonoBehaviour
         
         _legRight = leg.AddComponent<LegBehaviour>();
         _legRight.Setup(_legMountPointRight, _driverPoint, false);
-        // _legRight.transform.Rotate(Vector3.up, 180);
-        // _legRight.transform.Rotate(Vector3.right, 180);
     }
 
     // ReSharper disable Unity.PerformanceAnalysis
@@ -103,29 +138,33 @@ public class DogPlatform : MonoBehaviour
         {
             DecreaseSpeed();
         }
+        
+        else if (Input.GetKeyDown(KeyCode.W))
+        {
+            gameObject.GetComponent<Rigidbody>().isKinematic = false;
+        }
     }
 
     private void DecreaseSpeed()
     {
         targetVelocity -= velocityStep;
-        _driver.xDrive = DriverXDrive();
+        SetMotor();
+    }
+
+    private void SetMotor()
+    {
+        _driver.useMotor = true;
+        _driver.motor = new JointMotor
+        {
+            force = 100000,
+            freeSpin = true,
+            targetVelocity = targetVelocity
+        };
     }
 
     private void IncreaseSpeed()
     {
         targetVelocity += velocityStep;
-        _driver.xDrive = DriverXDrive();
-    }
-
-    private ArticulationDrive DriverXDrive()
-    {
-        Debug.Log($"VELOCITY = {targetVelocity}");
-        return new ArticulationDrive()
-        {
-            damping = 1000000000000,
-            stiffness = 0,
-            targetVelocity = targetVelocity,
-            forceLimit = 1000000000000000
-        };
+        SetMotor();
     }
 }

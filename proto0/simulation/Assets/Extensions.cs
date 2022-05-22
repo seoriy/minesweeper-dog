@@ -1,5 +1,6 @@
 using System;
 using UnityEngine;
+
 using Quaternion = UnityEngine.Quaternion;
 using Vector3 = UnityEngine.Vector3;
 
@@ -65,7 +66,7 @@ public static class Extensions
     private static void Rotate(this GameObject gameObject, double angleX, Vector3 axis = default)
         => gameObject.transform.Rotate(axis == default ? Vector3.forward : axis, Convert.ToSingle(angleX), Space.World);
     
-    public static BoneBehaviour CreateBone(this Component parentComponent, string boneTag, float size)
+    public static BoneBehaviour CreateBone(this Component parentComponent, string boneTag, float size, bool addCollider = false)
     {
         var boneObject = new GameObject();
         boneObject.name = boneTag;
@@ -74,7 +75,17 @@ public static class Extensions
         var bone = boneObject.AddComponent<BoneBehaviour>();
         bone.length = size * BoneBehaviour.BoneSizeScale;
         bone.OnValidate();
+
+        if (addCollider)
+        {
+            bone.AddColliders();
+        }
         
         return bone;
+    }
+    
+    public static void SetParent(BoneBehaviour bone, GameObject parent)
+    {
+        bone.gameObject.transform.SetParent(parent.transform, true);
     }
 }

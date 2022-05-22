@@ -30,8 +30,8 @@ public class LegBehaviour : MonoBehaviour
         _purpleTrianglesLink = this.CreateBone("bonePurpleTrianglesLink", 39.4f);
         _greenTrianglesLink = this.CreateBone("boneGreenTrianglesLink", 39.3f);
         _blueBar = this.CreateBone("boneBlue", 36.7f);
-        _blueLong = this.CreateBone("boneBlueLong", 65.7f);
-        _blueShort = this.CreateBone("boneBlueShort", 49f);
+        _blueLong = this.CreateBone("boneBlueLong", 65.7f, true);
+        _blueShort = this.CreateBone("boneBlueShort", 49f, true);
         _redBar = this.CreateBone("boneRed", 40.1f);
         _redLong = this.CreateBone("boneRedLong", 55.8f);
         _redShort = this.CreateBone("boneRedShort", 41.5f);
@@ -46,7 +46,6 @@ public class LegBehaviour : MonoBehaviour
 
         if (leftLeg)
         {
-            
             Extensions.ComposeTriangle(
                 _driverPoint, _greenLink.endDown,
                 _legMountPoint, _redShort.endDown);
@@ -71,28 +70,23 @@ public class LegBehaviour : MonoBehaviour
         {
             Extensions.ComposeTriangle(
                 _legMountPoint, _redShort.endDown,
-                _driverPoint, _greenLink.endDown
-                );
+                _driverPoint, _greenLink.endDown);
             
             Extensions.ComposeTriangle(
                 _redShort.endDown, _redBar.endDown,
-                _redShort.endUp, _redLong.endDown
-                );
+                _redShort.endUp, _redLong.endDown);
 
             Extensions.ComposeTriangle(
                 _legMountPoint, _greenTrianglesLink.endUp,
-                _driverPoint, _orangeLink.endUp
-                );
+                _driverPoint, _orangeLink.endUp);
             
             Extensions.ComposeTriangle(
                 _greenTrianglesLink.endDown, _blueBar.endDown,
-                _redBar.endUp, _purpleTrianglesLink.endDown
-                );
+                _redBar.endUp, _purpleTrianglesLink.endDown);
             
             Extensions.ComposeTriangle(
                 _blueBar.endUp, _blueLong.endUp,
-                _blueBar.endDown, _blueShort.endUp
-                );
+                _blueBar.endDown, _blueShort.endUp);
         }
         
         SetupLinkages();
@@ -100,29 +94,33 @@ public class LegBehaviour : MonoBehaviour
 
     private void SetupLinkages()
     {
-        _greenLink.endDown.HingeConnectToBody(_driverPoint);
-        _orangeLink.endUp.HingeConnectToBody(_greenLink.endDown);
-        
-        var redTriangleDrivePoint = _redLong.endDown;
-        
-        // red
-        redTriangleDrivePoint.HingeConnectToBody(_greenLink.endUp);
-        
-        _redShort.endUp.FixedConnectToBody(redTriangleDrivePoint);
-        _redBar.endDown.FixedConnectToBody(_redShort.endDown);
-        
-        // blue
-        _blueBar.endDown.HingeConnectToBody(_orangeLink.endDown);
-        _blueShort.endUp.FixedConnectToBody(_blueBar.endDown);
-        _blueLong.endUp.FixedConnectToBody(_blueBar.endUp);
+        _redBar.gameObject.transform.SetParent(gameObject.transform, true);
 
-        // triangle links
-        _redShort.endDown.HingeWith(_legMountPoint);
+        Extensions.SetParent(_redLong, _redBar.gameObject);
+        Extensions.SetParent(_redShort, _redBar.gameObject);
+
+        _blueBar.gameObject.transform.SetParent(gameObject.transform, true);
         
-        _greenTrianglesLink.endUp.HingeConnectToBody(_redBar.endDown);
+        Extensions.SetParent(_blueLong, _blueBar.gameObject);
+        Extensions.SetParent(_blueShort, _blueBar.gameObject);
+
+        _purpleTrianglesLink.gameObject.AddComponent<Rigidbody>();
+        _greenTrianglesLink.gameObject.AddComponent<Rigidbody>();
+        _greenLink.gameObject.AddComponent<Rigidbody>();
+        _orangeLink.gameObject.AddComponent<Rigidbody>();
+        _blueBar.gameObject.AddComponent<Rigidbody>();
+        _redBar.gameObject.gameObject.AddComponent<Rigidbody>();
+
         _greenTrianglesLink.endDown.HingeWith(_blueBar.endDown);
+        _greenTrianglesLink.endUp.HingeWith(_legMountPoint);
+        _redBar.endDown.HingeWith(_legMountPoint);
         
-        _purpleTrianglesLink.endDown.HingeConnectToBody(_redBar.endUp);
+        _purpleTrianglesLink.endDown.HingeWith(_redBar.endUp);
         _purpleTrianglesLink.endUp.HingeWith(_blueBar.endUp);
+        
+        _greenLink.endUp.HingeWith(_redLong.endDown);
+        _greenLink.endDown.HingeWith(_driverPoint);
+        _orangeLink.endUp.HingeWith(_driverPoint);
+        _orangeLink.endDown.HingeWith(_blueShort.endUp);
     }
 }
