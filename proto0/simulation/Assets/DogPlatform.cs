@@ -129,17 +129,17 @@ public class DogPlatform : MonoBehaviour
     // ReSharper disable Unity.PerformanceAnalysis
     private void Update()
     {
-        if (Input.GetKeyDown(KeyCode.D))
+        if (Input.GetKeyDown(KeyCode.C))
         {
             IncreaseSpeed();
         }
         
-        else if (Input.GetKeyDown(KeyCode.A))
+        else if (Input.GetKeyDown(KeyCode.Z))
         {
             DecreaseSpeed();
         }
         
-        else if (Input.GetKeyDown(KeyCode.W))
+        else if (Input.GetKeyDown(KeyCode.T))
         {
             gameObject.GetComponent<Rigidbody>().isKinematic = false;
         }
